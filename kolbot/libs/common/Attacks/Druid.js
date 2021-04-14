@@ -105,7 +105,7 @@ var ClassAttack = {
 
 	// Returns: 0 - fail, 1 - success, 2 - no valid attack skills
 	doCast: function (unit, timedSkill, untimedSkill) {
-		var i, walk;
+		var i, walk, mark;
 
 		// No valid skills can be found
 		if (timedSkill < 0 && untimedSkill < 0) {
@@ -116,8 +116,29 @@ var ClassAttack = {
 			switch (timedSkill) {
 				case 245: // Tornado
 					if (Math.round(getDistance(me, unit)) > Skill.getRange(timedSkill) || checkCollision(me, unit, 0x4)) {
+
+						walk = Skill.getRange(timedSkill) < 4 && getDistance(me, unit) < 10 && !checkCollision(me, unit, 0x1);
+
 						if (!Attack.getIntoPosition(unit, Skill.getRange(timedSkill), 0x4)) {
 							return 0;
+						}
+					}
+
+					mark = Attack.getNearestMonster();
+					//D2Bot.printToConsole("mark: " + mark);
+					if (mark <= 4) {
+						me.overhead("attack(!) move => " + mark + "/" + walk);
+						Attack.getIntoPosition(unit, Skill.getRange(timedSkill), 0x4, walk);
+					}
+					if (mark) {
+						me.overhead("attack(" + timedSkill + ") => " + mark);
+						if (!unit.dead && !checkCollision(me, unit, 0x4)) {
+							// me.overhead("cast");
+							if (!Skill.cast(timedSkill, Skill.getHand(timedSkill), unit)) {
+								me.overhead("fail");
+							} else {
+								Skill.cast(timedSkill, Skill.getHand(timedSkill), unit);
+							}
 						}
 					}
 
