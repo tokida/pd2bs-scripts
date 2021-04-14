@@ -114,38 +114,38 @@ var ClassAttack = {
 
 		if (timedSkill > -1 && (!me.getState(121) || !Skill.isTimed(timedSkill))) {
 			switch (timedSkill) {
-			case 245: // Tornado
-				if (Math.round(getDistance(me, unit)) > Skill.getRange(timedSkill) || checkCollision(me, unit, 0x4)) {
-					if (!Attack.getIntoPosition(unit, Skill.getRange(timedSkill), 0x4)) {
+				case 245: // Tornado
+					if (Math.round(getDistance(me, unit)) > Skill.getRange(timedSkill) || checkCollision(me, unit, 0x4)) {
+						if (!Attack.getIntoPosition(unit, Skill.getRange(timedSkill), 0x4)) {
+							return 0;
+						}
+					}
+
+					// Randomized x coord changes tornado path and prevents constant missing
+					if (!unit.dead) {
+						Skill.cast(timedSkill, Skill.getHand(timedSkill), unit.x + rand(-2, 2), unit.y);
+					}
+
+					return 1;
+				default:
+					if (Skill.getRange(timedSkill) < 4 && !Attack.validSpot(unit.x, unit.y)) {
 						return 0;
 					}
-				}
 
-				// Randomized x coord changes tornado path and prevents constant missing
-				if (!unit.dead) {
-					Skill.cast(timedSkill, Skill.getHand(timedSkill), unit.x + rand(-2, 2), unit.y);
-				}
+					if (Math.round(getDistance(me, unit)) > Skill.getRange(timedSkill) || checkCollision(me, unit, 0x4)) {
+						// Allow short-distance walking for melee skills
+						walk = Skill.getRange(timedSkill) < 4 && getDistance(me, unit) < 10 && !checkCollision(me, unit, 0x1);
 
-				return 1;
-			default:
-				if (Skill.getRange(timedSkill) < 4 && !Attack.validSpot(unit.x, unit.y)) {
-					return 0;
-				}
-
-				if (Math.round(getDistance(me, unit)) > Skill.getRange(timedSkill) || checkCollision(me, unit, 0x4)) {
-					// Allow short-distance walking for melee skills
-					walk = Skill.getRange(timedSkill) < 4 && getDistance(me, unit) < 10 && !checkCollision(me, unit, 0x1);
-
-					if (!Attack.getIntoPosition(unit, Skill.getRange(timedSkill), 0x4, walk)) {
-						return 0;
+						if (!Attack.getIntoPosition(unit, Skill.getRange(timedSkill), 0x4, walk)) {
+							return 0;
+						}
 					}
-				}
 
-				if (!unit.dead) {
-					Skill.cast(timedSkill, Skill.getHand(timedSkill), unit);
-				}
+					if (!unit.dead) {
+						Skill.cast(timedSkill, Skill.getHand(timedSkill), unit);
+					}
 
-				return 1;
+					return 1;
 			}
 		}
 

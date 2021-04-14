@@ -135,37 +135,37 @@ var ClassAttack = {
 
 		if (timedSkill > -1 && (!me.getState(121) || !Skill.isTimed(timedSkill))) {
 			switch (timedSkill) {
-			case 151: // Whirlwind
-				if (Math.round(getDistance(me, unit)) > Skill.getRange(timedSkill) || checkCollision(me, unit, 0x1)) {
-					if (!Attack.getIntoPosition(unit, Skill.getRange(timedSkill), 0x1)) {
+				case 151: // Whirlwind
+					if (Math.round(getDistance(me, unit)) > Skill.getRange(timedSkill) || checkCollision(me, unit, 0x1)) {
+						if (!Attack.getIntoPosition(unit, Skill.getRange(timedSkill), 0x1)) {
+							return 0;
+						}
+					}
+
+					if (!unit.dead) {
+						this.whirlwind(unit);
+					}
+
+					return 1;
+				default:
+					if (Skill.getRange(timedSkill) < 4 && !Attack.validSpot(unit.x, unit.y)) {
 						return 0;
 					}
-				}
 
-				if (!unit.dead) {
-					this.whirlwind(unit);
-				}
+					if (Math.round(getDistance(me, unit)) > Skill.getRange(timedSkill) || checkCollision(me, unit, 0x4)) {
+						// Allow short-distance walking for melee skills
+						walk = Skill.getRange(timedSkill) < 4 && getDistance(me, unit) < 10 && !checkCollision(me, unit, 0x1);
 
-				return 1;
-			default:
-				if (Skill.getRange(timedSkill) < 4 && !Attack.validSpot(unit.x, unit.y)) {
-					return 0;
-				}
-
-				if (Math.round(getDistance(me, unit)) > Skill.getRange(timedSkill) || checkCollision(me, unit, 0x4)) {
-					// Allow short-distance walking for melee skills
-					walk = Skill.getRange(timedSkill) < 4 && getDistance(me, unit) < 10 && !checkCollision(me, unit, 0x1);
-
-					if (!Attack.getIntoPosition(unit, Skill.getRange(timedSkill), 0x4, walk)) {
-						return 0;
+						if (!Attack.getIntoPosition(unit, Skill.getRange(timedSkill), 0x4, walk)) {
+							return 0;
+						}
 					}
-				}
 
-				if (!unit.dead) {
-					Skill.cast(timedSkill, Skill.getHand(timedSkill), unit);
-				}
+					if (!unit.dead) {
+						Skill.cast(timedSkill, Skill.getHand(timedSkill), unit);
+					}
 
-				return 1;
+					return 1;
 			}
 		}
 
@@ -218,7 +218,7 @@ var ClassAttack = {
 		var i, j,
 			traps = 0;
 
-		this.lastTrapPos = {x: unit.x, y: unit.y};
+		this.lastTrapPos = { x: unit.x, y: unit.y };
 
 		for (i = -1; i <= 1; i += 1) {
 			for (j = -1; j <= 1; j += 1) {
@@ -268,7 +268,7 @@ var ClassAttack = {
 		for (i = 0; i < angles.length; i += 1) { // get a better spot
 			coords = [Math.round((Math.cos((angle + angles[i]) * Math.PI / 180)) * 4 + unit.x), Math.round((Math.sin((angle + angles[i]) * Math.PI / 180)) * 4 + unit.y)];
 
-			if (!CollMap.checkColl(me, {x: coords[0], y: coords[1]}, 0x1, 1)) {
+			if (!CollMap.checkColl(me, { x: coords[0], y: coords[1] }, 0x1, 1)) {
 				return Skill.cast(151, 0, coords[0], coords[1]);
 			}
 		}

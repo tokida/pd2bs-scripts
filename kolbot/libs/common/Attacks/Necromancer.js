@@ -14,55 +14,55 @@ var ClassAttack = {
 
 		for (i = 0; i < Config.Curse.length; i += 1) {
 			switch (Config.Curse[i]) {
-			case 0: //nothing
-				this.curseState[i] = 0;
+				case 0: //nothing
+					this.curseState[i] = 0;
 
-				break;
-			case 66: //amplify damage
-				this.curseState[i] = 9;
+					break;
+				case 66: //amplify damage
+					this.curseState[i] = 9;
 
-				break;
-			case 71: //dim vision
-				this.curseState[i] = 23;
+					break;
+				case 71: //dim vision
+					this.curseState[i] = 23;
 
-				break;
-			case 72: //weaken
-				this.curseState[i] = 19;
+					break;
+				case 72: //weaken
+					this.curseState[i] = 19;
 
-				break;
-			case 76: //iron maiden
-				this.curseState[i] = 55;
+					break;
+				case 76: //iron maiden
+					this.curseState[i] = 55;
 
-				break;
-			case 77: //terror
-				this.curseState[i] = 56;
+					break;
+				case 77: //terror
+					this.curseState[i] = 56;
 
-				break;
-			case 81: //confuse
-				this.curseState[i] = 59;
+					break;
+				case 81: //confuse
+					this.curseState[i] = 59;
 
-				break;
-			case 82: //life tap
-				this.curseState[i] = 58;
+					break;
+				case 82: //life tap
+					this.curseState[i] = 58;
 
-				break;
-			case 86: //attract
-				this.curseState[i] = 57;
+					break;
+				case 86: //attract
+					this.curseState[i] = 57;
 
-				break;
-			case 87: //decrepify
-				this.curseState[i] = 60;
+					break;
+				case 87: //decrepify
+					this.curseState[i] = 60;
 
-				break;
-			case 91: //lower resist
-				this.curseState[i] = 61;
+					break;
+				case 91: //lower resist
+					this.curseState[i] = 61;
 
-				break;
-			default:
-				Config.Curse[i] = 0;
-				print("Invalid curse id");
+					break;
+				default:
+					Config.Curse[i] = 0;
+					print("Invalid curse id");
 
-				break;
+					break;
 			}
 		}
 
@@ -219,49 +219,49 @@ var ClassAttack = {
 
 		if (timedSkill > -1 && (!me.getState(121) || !Skill.isTimed(timedSkill))) {
 			switch (timedSkill) {
-			case 92: // Poison Nova
-				if (!this.novaTick || getTickCount() - this.novaTick > Config.PoisonNovaDelay * 1000) {
+				case 92: // Poison Nova
+					if (!this.novaTick || getTickCount() - this.novaTick > Config.PoisonNovaDelay * 1000) {
+						if (Math.round(getDistance(me, unit)) > Skill.getRange(timedSkill) || checkCollision(me, unit, 0x4)) {
+							if (!Attack.getIntoPosition(unit, Skill.getRange(timedSkill), 0x4)) {
+								return 0;
+							}
+						}
+
+						if (!unit.dead && Skill.cast(timedSkill, Skill.getHand(timedSkill), unit)) {
+							this.novaTick = getTickCount();
+						}
+					}
+
+					break;
+				case 500: // Pure Summoner
 					if (Math.round(getDistance(me, unit)) > Skill.getRange(timedSkill) || checkCollision(me, unit, 0x4)) {
 						if (!Attack.getIntoPosition(unit, Skill.getRange(timedSkill), 0x4)) {
 							return 0;
 						}
 					}
 
-					if (!unit.dead && Skill.cast(timedSkill, Skill.getHand(timedSkill), unit)) {
-						this.novaTick = getTickCount();
-					}
-				}
+					delay(300);
 
-				break;
-			case 500: // Pure Summoner
-				if (Math.round(getDistance(me, unit)) > Skill.getRange(timedSkill) || checkCollision(me, unit, 0x4)) {
-					if (!Attack.getIntoPosition(unit, Skill.getRange(timedSkill), 0x4)) {
+					break;
+				default:
+					if (Skill.getRange(timedSkill) < 4 && !Attack.validSpot(unit.x, unit.y)) {
 						return 0;
 					}
-				}
 
-				delay(300);
+					if (Math.round(getDistance(me, unit)) > Skill.getRange(timedSkill) || checkCollision(me, unit, 0x4)) {
+						// Allow short-distance walking for melee skills
+						walk = Skill.getRange(timedSkill) < 4 && getDistance(me, unit) < 10 && !checkCollision(me, unit, 0x1);
 
-				break;
-			default:
-				if (Skill.getRange(timedSkill) < 4 && !Attack.validSpot(unit.x, unit.y)) {
-					return 0;
-				}
-
-				if (Math.round(getDistance(me, unit)) > Skill.getRange(timedSkill) || checkCollision(me, unit, 0x4)) {
-					// Allow short-distance walking for melee skills
-					walk = Skill.getRange(timedSkill) < 4 && getDistance(me, unit) < 10 && !checkCollision(me, unit, 0x1);
-
-					if (!Attack.getIntoPosition(unit, Skill.getRange(timedSkill), 0x4, walk)) {
-						return 0;
+						if (!Attack.getIntoPosition(unit, Skill.getRange(timedSkill), 0x4, walk)) {
+							return 0;
+						}
 					}
-				}
 
-				if (!unit.dead) {
-					Skill.cast(timedSkill, Skill.getHand(timedSkill), unit);
-				}
+					if (!unit.dead) {
+						Skill.cast(timedSkill, Skill.getHand(timedSkill), unit);
+					}
 
-				break;
+					break;
 			}
 		}
 
@@ -312,12 +312,12 @@ var ClassAttack = {
 		}
 
 		switch (unit.classid) {
-		case 206: // Foul Crow Nest
-		case 258: // Water Watcher
-		case 261: // Water Watcher
-		case 266: // Flavie
-		case 528: // Evil Demon Hut
-			return false;
+			case 206: // Foul Crow Nest
+			case 258: // Water Watcher
+			case 261: // Water Watcher
+			case 266: // Flavie
+			case 528: // Evil Demon Hut
+				return false;
 		}
 
 		return true;
@@ -363,7 +363,7 @@ var ClassAttack = {
 				} while (corpse.getNext());
 			}
 
-MainLoop:
+			MainLoop:
 			while (corpseList.length > 0) {
 				corpse = corpseList.shift();
 
@@ -524,13 +524,13 @@ MainLoop:
 		}
 
 		if (getDistance(me, unit) <= 25 && !checkCollision(me, unit, 0x4) &&
-				!unit.getState(1) && // freeze
-				!unit.getState(96) && // revive
-				!unit.getState(99) && // redeemed
-				!unit.getState(104) && // nodraw
-				!unit.getState(107) && // shatter
-				!unit.getState(118) // noselect
-				) {
+			!unit.getState(1) && // freeze
+			!unit.getState(96) && // revive
+			!unit.getState(99) && // redeemed
+			!unit.getState(104) && // nodraw
+			!unit.getState(107) && // shatter
+			!unit.getState(118) // noselect
+		) {
 			return true;
 		}
 

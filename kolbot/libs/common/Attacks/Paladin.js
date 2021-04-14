@@ -5,22 +5,22 @@
 */
 
 var ClassAttack = {
-	
-	holyNova: function(unit){
-		if(Config.UseHolyNova) {
-			if(me.getSkill(364, 1) && (!me.getState(121) || !Skill.isTimed(364))){
-				if(me.mp > me.mpmax / 3) {
-					if(getDistance(me, unit) < 20){
+
+	holyNova: function (unit) {
+		if (Config.UseHolyNova) {
+			if (me.getSkill(364, 1) && (!me.getState(121) || !Skill.isTimed(364))) {
+				if (me.mp > me.mpmax / 3) {
+					if (getDistance(me, unit) < 20) {
 						Skill.cast(364, 1);
 					}
 				}
 			}
 		}
 	},
-	
+
 	doAttack: function (unit, preattack) {
-		
-		
+
+
 		if (Config.MercWatch && Town.needMerc()) {
 			print("mercwatch");
 			Town.visitTown();
@@ -112,78 +112,78 @@ var ClassAttack = {
 		if (attackSkill < 0) {
 			return 2;
 		}
-		
+
 		this.holyNova(unit);
 
 		switch (attackSkill) {
-		case 112:
-			if (Config.AvoidDolls && [212, 213, 214, 215, 216, 690, 691].indexOf(unit.classid) > -1) {
-				this.dollAvoid(unit);
+			case 112:
+				if (Config.AvoidDolls && [212, 213, 214, 215, 216, 690, 691].indexOf(unit.classid) > -1) {
+					this.dollAvoid(unit);
+
+					if (aura > -1) {
+						Skill.setSkill(aura, 0);
+					}
+
+					Skill.cast(attackSkill, Skill.getHand(attackSkill), unit);
+
+					return 1;
+				}
+
+				if (!this.getHammerPosition(unit)) {
+					//print("Can't get to " + unit.name);
+
+					// Fallback to secondary skill if it exists
+					if (Config.AttackSkill[5] > -1 && Config.AttackSkill[5] !== 112 && Attack.checkResist(unit, Config.AttackSkill[5])) {
+						return this.doCast(unit, Config.AttackSkill[5], Config.AttackSkill[6]);
+					}
+
+					return 0;
+				}
+
+				if (getDistance(me, unit) > 9 || unit.dead) {
+					//print(getDistance(me, unit));
+
+					return 1;
+				}
 
 				if (aura > -1) {
 					Skill.setSkill(aura, 0);
 				}
 
-				Skill.cast(attackSkill, Skill.getHand(attackSkill), unit);
+				for (i = 0; i < 3; i += 1) {
+					Skill.cast(attackSkill, Skill.getHand(attackSkill), unit);
+
+					if (!Attack.checkMonster(unit) || getDistance(me, unit) > 9 || unit.type === 0) {
+						break;
+					}
+				}
 
 				return 1;
-			}
-
-			if (!this.getHammerPosition(unit)) {
-				//print("Can't get to " + unit.name);
-
-				// Fallback to secondary skill if it exists
-				if (Config.AttackSkill[5] > -1 && Config.AttackSkill[5] !== 112 && Attack.checkResist(unit, Config.AttackSkill[5])) {
-					return this.doCast(unit, Config.AttackSkill[5], Config.AttackSkill[6]);
+			case 101:
+				if (getDistance(me, unit) > Skill.getRange(attackSkill) + 3 || CollMap.checkColl(me, unit, 0x4)) {
+					if (!Attack.getIntoPosition(unit, Skill.getRange(attackSkill), 0x4)) {
+						return 0;
+					}
 				}
 
-				return 0;
-			}
+				CollMap.reset();
 
-			if (getDistance(me, unit) > 9 || unit.dead) {
-				//print(getDistance(me, unit));
+				if (getDistance(me, unit) > Skill.getRange(attackSkill) || CollMap.checkColl(me, unit, 0x2004, 2)) {
+					if (!Attack.getIntoPosition(unit, Skill.getRange(attackSkill), 0x2004, true)) {
+						return 0;
+					}
+				}
+
+				if (!unit.dead) {
+					if (aura > -1) {
+						Skill.setSkill(aura, 0);
+					}
+
+					Skill.cast(attackSkill, Skill.getHand(attackSkill), unit);
+				}
 
 				return 1;
-			}
-
-			if (aura > -1) {
-				Skill.setSkill(aura, 0);
-			}
-
-			for (i = 0; i < 3; i += 1) {
-				Skill.cast(attackSkill, Skill.getHand(attackSkill), unit);
-
-				if (!Attack.checkMonster(unit) || getDistance(me, unit) > 9 || unit.type === 0) {
-					break;
-				}
-			}
-
-			return 1;
-		case 101:
-			if (getDistance(me, unit) > Skill.getRange(attackSkill) + 3 || CollMap.checkColl(me, unit, 0x4)) {
-				if (!Attack.getIntoPosition(unit, Skill.getRange(attackSkill), 0x4)) {
-					return 0;
-				}
-			}
-
-			CollMap.reset();
-
-			if (getDistance(me, unit) > Skill.getRange(attackSkill) || CollMap.checkColl(me, unit, 0x2004, 2)) {
-				if (!Attack.getIntoPosition(unit, Skill.getRange(attackSkill), 0x2004, true)) {
-					return 0;
-				}
-			}
-
-			if (!unit.dead) {
-				if (aura > -1) {
-					Skill.setSkill(aura, 0);
-				}
-
-				Skill.cast(attackSkill, Skill.getHand(attackSkill), unit);
-			}
-
-			return 1;
-		case 121: // FoH
+			case 121: // FoH
 				if (getDistance(me, unit) > Skill.getRange(attackSkill) || CollMap.checkColl(me, unit, 0x2004, 2)) {
 					if (!Attack.getIntoPosition(unit, Skill.getRange(attackSkill), 0x2004, true)) {
 						return 0;
@@ -200,30 +200,30 @@ var ClassAttack = {
 					return 1;
 				}
 
-			break;
-		default:
-			if (Skill.getRange(attackSkill) < 4 && !Attack.validSpot(unit.x, unit.y)) {
-				return 0;
-			}
-
-			if (Math.floor(getDistance(me, unit)) > Skill.getRange(attackSkill) || checkCollision(me, unit, 0x4)) {
-				walk = attackSkill !== 97 && Skill.getRange(attackSkill) < 4 && getDistance(me, unit) < 10 && !checkCollision(me, unit, 0x1);
-
-				// walk short distances instead of tele for melee attacks. teleport if failed to walk
-				if (!Attack.getIntoPosition(unit, Skill.getRange(attackSkill), 0x4, walk)) {
+				break;
+			default:
+				if (Skill.getRange(attackSkill) < 4 && !Attack.validSpot(unit.x, unit.y)) {
 					return 0;
 				}
-			}
 
-			if (!unit.dead) {
-				if (aura > -1) {
-					Skill.setSkill(aura, 0);
+				if (Math.floor(getDistance(me, unit)) > Skill.getRange(attackSkill) || checkCollision(me, unit, 0x4)) {
+					walk = attackSkill !== 97 && Skill.getRange(attackSkill) < 4 && getDistance(me, unit) < 10 && !checkCollision(me, unit, 0x1);
+
+					// walk short distances instead of tele for melee attacks. teleport if failed to walk
+					if (!Attack.getIntoPosition(unit, Skill.getRange(attackSkill), 0x4, walk)) {
+						return 0;
+					}
 				}
 
-				Skill.cast(attackSkill, Skill.getHand(attackSkill), unit);
-			}
+				if (!unit.dead) {
+					if (aura > -1) {
+						Skill.setSkill(aura, 0);
+					}
 
-			return 1;
+					Skill.cast(attackSkill, Skill.getHand(attackSkill), unit);
+				}
+
+				return 1;
 		}
 
 		for (i = 0; i < 25; i += 1) {
@@ -264,22 +264,22 @@ var ClassAttack = {
 		}
 
 		switch (unit.type) {
-		case 0: // Player
-			x = unit.x;
-			y = unit.y;
-			positions = [[x + 2, y], [x + 2, y + 1]];
+			case 0: // Player
+				x = unit.x;
+				y = unit.y;
+				positions = [[x + 2, y], [x + 2, y + 1]];
 
-			break;
-		case 1: // Monster
-			x = (unit.mode === 2 || unit.mode === 15) && getDistance(me, unit) < 10 && getDistance(me, unit.targetx, unit.targety) > 5 ? unit.targetx : unit.x;
-			y = (unit.mode === 2 || unit.mode === 15) && getDistance(me, unit) < 10 && getDistance(me, unit.targetx, unit.targety) > 5 ? unit.targety : unit.y;
-			positions = [[x + 2, y + 1], [x, y + 3], [x + 2, y - 1], [x - 2, y + 2], [x - 5, y]];
+				break;
+			case 1: // Monster
+				x = (unit.mode === 2 || unit.mode === 15) && getDistance(me, unit) < 10 && getDistance(me, unit.targetx, unit.targety) > 5 ? unit.targetx : unit.x;
+				y = (unit.mode === 2 || unit.mode === 15) && getDistance(me, unit) < 10 && getDistance(me, unit.targetx, unit.targety) > 5 ? unit.targety : unit.y;
+				positions = [[x + 2, y + 1], [x, y + 3], [x + 2, y - 1], [x - 2, y + 2], [x - 5, y]];
 
-			if (size === 3) {
-				positions.unshift([x + 2, y + 2]);
-			}
+				if (size === 3) {
+					positions.unshift([x + 2, y + 2]);
+				}
 
-			break;
+				break;
 		}
 
 		for (i = 0; i < positions.length; i += 1) {

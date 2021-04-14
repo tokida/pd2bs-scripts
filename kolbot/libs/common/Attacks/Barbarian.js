@@ -77,36 +77,36 @@ var ClassAttack = {
 		}
 
 		switch (attackSkill) {
-		case 151:
-			if (Math.ceil(getDistance(me, unit)) > Skill.getRange(attackSkill) || checkCollision(me, unit, 0x1)) {
-				if (!Attack.getIntoPosition(unit, Skill.getRange(attackSkill), 0x1, 2)) {
+			case 151:
+				if (Math.ceil(getDistance(me, unit)) > Skill.getRange(attackSkill) || checkCollision(me, unit, 0x1)) {
+					if (!Attack.getIntoPosition(unit, Skill.getRange(attackSkill), 0x1, 2)) {
+						return 0;
+					}
+				}
+
+				if (!unit.dead) {
+					this.whirlwind(unit);
+				}
+
+				return 1;
+			default:
+				if (Skill.getRange(attackSkill) < 4 && !Attack.validSpot(unit.x, unit.y)) {
 					return 0;
 				}
-			}
 
-			if (!unit.dead) {
-				this.whirlwind(unit);
-			}
+				if (Math.round(getDistance(me, unit)) > Skill.getRange(attackSkill) || checkCollision(me, unit, 0x4)) {
+					walk = Skill.getRange(attackSkill) < 4 && getDistance(me, unit) < 10 && !checkCollision(me, unit, 0x1);
 
-			return 1;
-		default:
-			if (Skill.getRange(attackSkill) < 4 && !Attack.validSpot(unit.x, unit.y)) {
-				return 0;
-			}
-
-			if (Math.round(getDistance(me, unit)) > Skill.getRange(attackSkill) || checkCollision(me, unit, 0x4)) {
-				walk = Skill.getRange(attackSkill) < 4 && getDistance(me, unit) < 10 && !checkCollision(me, unit, 0x1);
-
-				if (!Attack.getIntoPosition(unit, Skill.getRange(attackSkill), 0x4, walk)) {
-					return 0;
+					if (!Attack.getIntoPosition(unit, Skill.getRange(attackSkill), 0x4, walk)) {
+						return 0;
+					}
 				}
-			}
 
-			if (!unit.dead) {
-				Skill.cast(attackSkill, Skill.getHand(attackSkill), unit);
-			}
+				if (!unit.dead) {
+					Skill.cast(attackSkill, Skill.getHand(attackSkill), unit);
+				}
 
-			return 1;
+				return 1;
 		}
 	},
 
@@ -128,7 +128,7 @@ var ClassAttack = {
 		for (i = 0; i < angles.length; i += 1) { // get a better spot
 			coords = [Math.round((Math.cos((angle + angles[i]) * Math.PI / 180)) * 4 + unit.x), Math.round((Math.sin((angle + angles[i]) * Math.PI / 180)) * 4 + unit.y)];
 
-			if (!CollMap.checkColl(me, {x: coords[0], y: coords[1]}, 0x1, 1)) {
+			if (!CollMap.checkColl(me, { x: coords[0], y: coords[1] }, 0x1, 1)) {
 				return Skill.cast(151, Skill.getHand(151), coords[0], coords[1]);
 			}
 		}
@@ -148,7 +148,7 @@ var ClassAttack = {
 		if (monster) {
 			do {
 				if (getDistance(me, monster) <= range && Attack.checkMonster(monster) && !checkCollision(me, monster, 0x4) &&
-						(Attack.checkResist(monster, Attack.getSkillElement(Config.AttackSkill[(monster.spectype & 0x7) ? 1 : 3])) ||
+					(Attack.checkResist(monster, Attack.getSkillElement(Config.AttackSkill[(monster.spectype & 0x7) ? 1 : 3])) ||
 						(Config.AttackSkill[3] > -1 && Attack.checkResist(monster, Attack.getSkillElement(Config.AttackSkill[3]))))) {
 					return true;
 				}
@@ -169,7 +169,7 @@ var ClassAttack = {
 		orgX = me.x;
 		orgY = me.y;
 
-MainLoop:
+		MainLoop:
 		for (i = 0; i < 3; i += 1) {
 			corpse = getUnit(1);
 
@@ -207,7 +207,7 @@ MainLoop:
 						Attack.weaponSwitch(Attack.getPrimarySlot() ^ 1);
 					}
 
-CorpseLoop:
+					CorpseLoop:
 					for (j = 0; j < 3; j += 1) {
 						Skill.cast(142, 0, corpse);
 
@@ -254,13 +254,13 @@ CorpseLoop:
 		}
 
 		if (getDistance(me, unit) <= 25 &&
-				!unit.getState(1) && // freeze
-				!unit.getState(96) && // revive
-				!unit.getState(99) && // redeemed
-				!unit.getState(104) && // nodraw
-				!unit.getState(107) && // shatter
-				!unit.getState(118) // noselect
-				) {
+			!unit.getState(1) && // freeze
+			!unit.getState(96) && // revive
+			!unit.getState(99) && // redeemed
+			!unit.getState(104) && // nodraw
+			!unit.getState(107) && // shatter
+			!unit.getState(118) // noselect
+		) {
 			return true;
 		}
 

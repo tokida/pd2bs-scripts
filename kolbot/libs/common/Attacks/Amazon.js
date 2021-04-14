@@ -122,58 +122,58 @@ var ClassAttack = {
 		// Arrow/bolt check
 		if (this.bowCheck) {
 			switch (this.bowCheck) {
-			case "bow":
-				if (!me.getItem("aqv", 1)) {
-					Town.visitTown();
-				}
+				case "bow":
+					if (!me.getItem("aqv", 1)) {
+						Town.visitTown();
+					}
 
-				break;
-			case "crossbow":
-				if (!me.getItem("cqv", 1)) {
-					Town.visitTown();
-				}
+					break;
+				case "crossbow":
+					if (!me.getItem("cqv", 1)) {
+						Town.visitTown();
+					}
 
-				break;
+					break;
 			}
 		}
 
 		if (timedSkill > -1 && (!me.getState(121) || !Skill.isTimed(timedSkill))) {
 			switch (timedSkill) {
-			case 35:
-				if (!this.lightFuryTick || getTickCount() - this.lightFuryTick > Config.LightningFuryDelay * 1000) {
+				case 35:
+					if (!this.lightFuryTick || getTickCount() - this.lightFuryTick > Config.LightningFuryDelay * 1000) {
+						if (Math.round(getDistance(me, unit)) > Skill.getRange(timedSkill) || checkCollision(me, unit, 0x4)) {
+							if (!Attack.getIntoPosition(unit, Skill.getRange(timedSkill), 0x4)) {
+								return 0;
+							}
+						}
+
+						if (!unit.dead && Skill.cast(timedSkill, Skill.getHand(timedSkill), unit)) {
+							this.lightFuryTick = getTickCount();
+						}
+
+						return 1;
+					}
+
+					break;
+				default:
+					if (Skill.getRange(timedSkill) < 4 && !Attack.validSpot(unit.x, unit.y)) {
+						return 0;
+					}
+
 					if (Math.round(getDistance(me, unit)) > Skill.getRange(timedSkill) || checkCollision(me, unit, 0x4)) {
-						if (!Attack.getIntoPosition(unit, Skill.getRange(timedSkill), 0x4)) {
+						// Allow short-distance walking for melee skills
+						walk = Skill.getRange(timedSkill) < 4 && getDistance(me, unit) < 10 && !checkCollision(me, unit, 0x1);
+
+						if (!Attack.getIntoPosition(unit, Skill.getRange(timedSkill), 0x4, walk)) {
 							return 0;
 						}
 					}
 
-					if (!unit.dead && Skill.cast(timedSkill, Skill.getHand(timedSkill), unit)) {
-						this.lightFuryTick = getTickCount();
+					if (!unit.dead) {
+						Skill.cast(timedSkill, Skill.getHand(timedSkill), unit);
 					}
 
 					return 1;
-				}
-
-				break;
-			default:
-				if (Skill.getRange(timedSkill) < 4 && !Attack.validSpot(unit.x, unit.y)) {
-					return 0;
-				}
-
-				if (Math.round(getDistance(me, unit)) > Skill.getRange(timedSkill) || checkCollision(me, unit, 0x4)) {
-					// Allow short-distance walking for melee skills
-					walk = Skill.getRange(timedSkill) < 4 && getDistance(me, unit) < 10 && !checkCollision(me, unit, 0x1);
-
-					if (!Attack.getIntoPosition(unit, Skill.getRange(timedSkill), 0x4, walk)) {
-						return 0;
-					}
-				}
-
-				if (!unit.dead) {
-					Skill.cast(timedSkill, Skill.getHand(timedSkill), unit);
-				}
-
-				return 1;
 			}
 		}
 
