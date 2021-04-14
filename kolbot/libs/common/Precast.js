@@ -132,9 +132,9 @@ var Precast = new function () {
 
 	this.doPrecast = function (force) {
 		var buffSummons = false;
-		
-		if (me.classid != 5){
-			if (me.getSkill(226, 1)&& !me.getState(149)) {
+
+		if (me.classid != 5) {
+			if (me.getSkill(226, 1) && !me.getState(149)) {
 				Skill.cast(226, 0); // Oak Sage
 			}
 		}
@@ -172,22 +172,22 @@ var Precast = new function () {
 						this.precastSkill(50); // Shiver Armor
 					}
 				}
-				
-				switch(Config.Enchant){
+
+				switch (Config.Enchant) {
 					case "None":
 						break;
 					case "Cold":
-						if(me.getSkill(40, 0) && (!me.getState(188) || force)){
+						if (me.getSkill(40, 0) && (!me.getState(188) || force)) {
 							this.enchant(40);
 						}
 						break;
 					case "Fire":
-						if(me.getSkill(52, 0) && (!me.getState(16) || force)){
+						if (me.getSkill(52, 0) && (!me.getState(16) || force)) {
 							this.enchant(52);
 						}
-						break;	
+						break;
 				}
-				break;				
+				break;
 			case 2: // Necromancer
 				if (me.getSkill(68, 0) && (!me.getState(14) || force)) {
 					this.precastSkill(68); // Bone Armor
@@ -209,6 +209,47 @@ var Precast = new function () {
 					case "Fire":
 						this.summon(94);
 						break;
+				}
+
+				//add desecrate (83) 
+				if (me.getSkill(83, 0) || force) {
+					var skill, maxSkeletons, maxMages, maxRevives;
+
+					if (Config.Skeletons === "max") {
+						skill = me.getSkill(70, 0);
+						maxSkeletons = skill < 4 ? skill : (Math.floor(skill / 3) + 2);
+						if (maxSkeletons > 8) {
+							maxSkeletons = 8;
+						}
+					} else {
+						maxSkeletons = Config.Skeletons;
+					}
+
+					if (Config.SkeletonMages === "max") {
+						skill = me.getSkill(80, 0);
+						maxMages = skill < 4 ? skill : (Math.floor(skill / 3) + 2);
+						if (maxMages > 8) {
+							maxMages = 8;
+						}
+					} else {
+						maxMages = Config.SkeletonMages;
+					}
+
+					if (Config.Revives === "max") {
+						skill = me.getSkill(95, 0);
+						maxRevives = Math.floor(skill / 4) + 3;
+						if (maxRevives > 8) {
+							maxRevives = 8;
+						}
+
+					} else {
+						maxRevives = Config.Revives;
+					}
+
+					if (me.getMinionCount(4) < maxSkeletons || me.getMinionCount(5) < maxMages || me.getMinionCount(6) < maxRevives) {
+						me.overhead("call desecrate");
+						this.precastSkill(83); // desecrate for raizeArmy()
+					}
 				}
 
 				break;
@@ -416,11 +457,28 @@ var Precast = new function () {
 
 				break;
 			case 75: // Clay Golem
+				var mastery = me.getSkill(79, 0);
+				if (mastery >= 5 && mastery < 10) {
+					count = 2;
+				}
+				else if (mastery >= 10 && mastery < 15) {
+					count = 3;
+				}
+				else if (mastery >= 15 && mastery < 20) {
+					count = 4;
+				}
+				else if (mastery >= 20) {
+					count = 5;
+				}
+				else {
+					count = 1;
+				}
+
 			case 85: // Blood Golem
 			case 94: // Fire Golem
 				var mastery = me.getSkill(79, 0);
-				
-				if (mastery >= 20 ) {
+
+				if (mastery >= 20) {
 					count = 5;
 				}
 				else if (mastery >= 15) {
@@ -431,11 +489,11 @@ var Precast = new function () {
 				}
 				else if (mastery >= 5) {
 					count = 2;
-				}	
+				}
 				else {
 					count = 1;
 				}
-				
+
 				minion = 3;
 				break;
 			case 221: // Raven
@@ -474,7 +532,7 @@ var Precast = new function () {
 
 				break;
 			case 247: // Grizzly
-				if(Config.GrizzlyCount){
+				if (Config.GrizzlyCount) {
 					count = Config.GrizzlyCount;
 				}
 				minion = 15;
@@ -497,6 +555,13 @@ var Precast = new function () {
 				break;
 			}
 			delay(200);
+
+			if (Config.MFLeader) {
+				if (me.getMinionCount(minion) == count - 1) {
+					say("area: " + me.area + " x: " + me.x + " y: " + me.y);
+				}
+			}
+
 		}
 
 		return !!rv;
