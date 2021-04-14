@@ -17,10 +17,7 @@ var ClassAttack = {
 			}
 		}
 	},
-
 	doAttack: function (unit, preattack) {
-
-
 		if (Config.MercWatch && Town.needMerc()) {
 			print("mercwatch");
 			Town.visitTown();
@@ -42,6 +39,10 @@ var ClassAttack = {
 			mercRevive = 0,
 			attackSkill = -1,
 			aura = -1;
+
+		if (me.runwalk === 1) {
+			me.runwalk = 0;
+		}
 
 		index = ((unit.spectype & 0x7) || unit.type === 0) ? 1 : 3;
 
@@ -101,6 +102,10 @@ var ClassAttack = {
 		Misc.unShift();
 		Precast.doPrecast(false);
 
+		if (me.runwalk === 0 && me.stamina / me.staminamax * 100 >= 50) {
+			me.runwalk = 1;
+		}
+
 		if (Config.Redemption instanceof Array && (me.hp * 100 / me.hpmax < Config.Redemption[0] || me.mp * 100 / me.mpmax < Config.Redemption[1]) && Skill.setSkill(124, 0)) {
 			delay(1500);
 		}
@@ -109,14 +114,17 @@ var ClassAttack = {
 	doCast: function (unit, attackSkill, aura) {
 		var i, walk;
 
+		if (me.runwalk === 1) {
+			me.runwalk = 0;
+		}
+
 		if (attackSkill < 0) {
 			return 2;
 		}
 
 		this.holyNova(unit);
-
 		switch (attackSkill) {
-			case 112:
+			case 112: /// Blessed Hammber
 				if (Config.AvoidDolls && [212, 213, 214, 215, 216, 690, 691].indexOf(unit.classid) > -1) {
 					this.dollAvoid(unit);
 
@@ -159,8 +167,11 @@ var ClassAttack = {
 				}
 
 				return 1;
-			case 101:
-				if (getDistance(me, unit) > Skill.getRange(attackSkill) + 3 || CollMap.checkColl(me, unit, 0x4)) {
+
+			case 101: // Holy Bolt
+				// Check for obstructions
+				if (getDistance(me, unit) > Skill.getRange(attackSkill) + 4 || CollMap.checkColl(me, unit, 0x4)) {
+					//if (getDistance(me, unit) > Skill.getRange(attackSkill) + 3 || CollMap.checkColl(me, unit, 0x4)) {
 					if (!Attack.getIntoPosition(unit, Skill.getRange(attackSkill), 0x4)) {
 						return 0;
 					}
@@ -173,31 +184,53 @@ var ClassAttack = {
 						return 0;
 					}
 				}
+				var mark, walk;
+				walk = Skill.getRange(attackSkill) < 4 && getDistance(me, unit) < 10 && !checkCollision(me, unit, 0x1);
 
 				if (!unit.dead) {
 					if (aura > -1) {
 						Skill.setSkill(aura, 0);
 					}
 
-					Skill.cast(attackSkill, Skill.getHand(attackSkill), unit);
+					mark = Attack.getNearestMonster();
+
+					if (mark <= 4) {
+						me.overhead("attack(!) move => " + mark + "/" + walk);
+						Attack.getIntoPosition(unit, Skill.getRange(attackSkill), 0x4, walk);
+					}
+					if (mark) {
+						me.overhead("attack(" + attackSkill + ") => " + mark);
+						if (!unit.dead && !checkCollision(me, unit, 0x4)) {
+							//me.overhead("cast(" + attackSkill + ")");
+							if (!Skill.cast(attackSkill, Skill.getHand(attackSkill), unit)) {
+								me.overhead("fail");
+							} else {
+								Skill.cast(attackSkill, Skill.getHand(attackSkill), unit);
+							}
+						}
+					}
+
 				}
 
 				return 1;
+
 			case 121: // FoH
-				if (getDistance(me, unit) > Skill.getRange(attackSkill) || CollMap.checkColl(me, unit, 0x2004, 2)) {
-					if (!Attack.getIntoPosition(unit, Skill.getRange(attackSkill), 0x2004, true)) {
-						return 0;
-					}
-				}
-
-				if (!unit.dead) {
-					if (aura > -1) {
-						Skill.setSkill(aura, 0);
+				if (!me.getState(121)) {
+					if (getDistance(me, unit) > Skill.getRange(attackSkill) || CollMap.checkColl(me, unit, 0x2004, 2)) {
+						if (!Attack.getIntoPosition(unit, Skill.getRange(attackSkill), 0x2004, true)) {
+							return 0;
+						}
 					}
 
-					Skill.cast(attackSkill, Skill.getHand(attackSkill), unit);
+					if (!unit.dead) {
+						if (aura > -1) {
+							Skill.setSkill(aura, 0);
+						}
 
-					return 1;
+						Skill.cast(attackSkill, Skill.getHand(attackSkill), unit);
+
+						return 1;
+					}
 				}
 
 				break;
