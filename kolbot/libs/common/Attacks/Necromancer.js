@@ -93,9 +93,16 @@ var ClassAttack = {
 		var index, checkSkill, result,
 			mercRevive = 0,
 			timedSkill = -1,
-			untimedSkill = -1;
+			untimedSkill = -1,
+			maxCurse = 0;
 
 		index = ((unit.spectype & 0x7) || unit.type === 0) ? 1 : 3;
+		maxCurse = Math.floor(me.getSkill(374, 0) / 10);
+
+		// add sheild deffence
+		if (me.runwalk === 1) {
+			me.runwalk = 0;
+		}
 
 		if (Config.Curse[0] > 0 && this.isCursable(unit) && (unit.spectype & 0x7) && !unit.getState(this.curseState[0])) {
 			if (getDistance(me, unit) > 25 || checkCollision(me, unit, 0x4)) {
@@ -104,19 +111,41 @@ var ClassAttack = {
 				}
 			}
 
+			// Additional curse at 10/20 hardpoints.
+
 			Skill.cast(Config.Curse[0], 0, unit);
+			//D2Bot.printToConsole("$Curse[0] : " + Config.Curse[0] + " -> " + unit.name);
+			// add 2nd,3rd curse
+			if (maxCurse == 1) {
+				Skill.cast(Config.Curse[2], 0, unit);
+				//D2Bot.printToConsole("$Curse[2] : " + Config.Curse[2] + " -> " + unit.name);
+			}
+			if (maxCurse == 2) {
+				Skill.cast(Config.Curse[4], 0, unit);
+				//D2Bot.printToConsole("$Curse[4] : " + Config.Curse[4] + " -> " + unit.name);
+			}
 
 			return 1;
 		}
 
 		if (Config.Curse[1] > 0 && this.isCursable(unit) && !(unit.spectype & 0x7) && !unit.getState(this.curseState[1])) {
-			if (getDistance(me, unit) > 25 || checkCollision(me, unit, 0x4)) {
-				if (!Attack.getIntoPosition(unit, 25, 0x4)) {
+			if (getDistance(me, unit) > Skill.getRange(Config.Curse[1]) || checkCollision(me, unit, 0x4)) {
+				if (!Attack.getIntoPosition(unit, Skill.getRange(Config.Curse[1]), 0x4)) {
 					return 0;
 				}
 			}
 
 			Skill.cast(Config.Curse[1], 0, unit);
+			//D2Bot.printToConsole("$Curse[1] : " + Config.Curse[1] + " -> " + unit.name);
+			// add 2nd,3rd curse
+			if (maxCurse == 1) {
+				Skill.cast(Config.Curse[3], 0, unit);
+				//D2Bot.printToConsole("$Curse[3] : " + Config.Curse[3] + " -> " + unit.name);
+			}
+			if (maxCurse == 2) {
+				Skill.cast(Config.Curse[5], 0, unit);
+				//D2Bot.printToConsole("$Curse[5] : " + Config.Curse[5] + " -> " + unit.name);
+			}
 
 			return 1;
 		}
@@ -165,6 +194,7 @@ var ClassAttack = {
 			}
 
 			this.explodeCorpses(unit);
+
 		} else if (result === 2 && Config.TeleStomp && Attack.checkResist(unit, "physical") && !!me.getMerc()) {
 			while (Attack.checkMonster(unit)) {
 				if (Town.needMerc()) {
@@ -197,13 +227,19 @@ var ClassAttack = {
 	afterAttack: function () {
 		Misc.unShift();
 		Precast.doPrecast(false);
+		if (me.runwalk === 1) {
+			me.runwalk = 0;
+		}
 		this.raiseArmy();
 		this.novaTick = 0;
+		if (me.runwalk === 0 && me.stamina / me.staminamax * 100 >= 50) {
+			me.runwalk = 1;
+		}
 	},
 
 	// Returns: 0 - fail, 1 - success, 2 - no valid attack skills
 	doCast: function (unit, timedSkill, untimedSkill) {
-		var i, walk;
+		var i, walk, mark;
 
 		// No valid skills can be found
 		if (timedSkill < 0 && untimedSkill < 0) {
@@ -257,9 +293,42 @@ var ClassAttack = {
 						}
 					}
 
-					if (!unit.dead) {
-						Skill.cast(timedSkill, Skill.getHand(timedSkill), unit);
+
+					mark = Math.floor(Attack.getNearestMonster() * 100) / 100;
+
+					if (mark < 15) {
+						var warp_x = me.x + Math.floor(Math.random() * (20 + 1 - 15) + 15);
+						var warp_y = me.y + Math.floor(Math.random() * (20 + 1 - 15) + 15);
+						//if (me.getSkill(367, 0)) {
+						if (me.hp / me.hpmax > 0.3) {
+							me.overhead("attack(*) warp");
+							//Skill.cast(367, 0, warp_x, warp_y);
+							Skill.cast(367, 0, unit);
+						}
+						//}
+						Pather.moveTo(warp_x, warp_y);
 					}
+
+					if (mark <= 4) {
+						me.overhead("attack(!) move => " + mark);
+						Attack.getIntoPosition(unit, Skill.getRange(timedSkill), 0x4, walk);
+					}
+					if (mark) {
+						me.overhead("attack(1) => " + mark);
+						if (!unit.dead && !checkCollision(me, unit, 0x4)) {
+							Skill.cast(timedSkill, Skill.getHand(timedSkill), unit);
+							Attack.getIntoPosition(unit, Skill.getRange(timedSkill), 0x4, walk);
+						}
+					} else if (me.getSkill(43, 0)) {
+						me.overhead("attack(2) => " + mark);
+						Skill.cast(43, 0, unit.x, unit.y);
+						if (!unit.dead && !checkCollision(me, unit, 0x4)) {
+							Skill.cast(timedSkill, Skill.getHand(timedSkill), unit);
+							Attack.getIntoPosition(unit, Skill.getRange(timedSkill), 0x4, walk);
+						}
+					}
+
+
 
 					break;
 			}
@@ -323,6 +392,19 @@ var ClassAttack = {
 		return true;
 	},
 
+	precastSkill: function (skillId, state, target) {
+		var swap = me.weaponswitch;
+		//D2Bot.printToConsole("precastSkill/swap : " + swap);
+
+		Attack.weaponSwitch(Precast.getBetterSlot(skillId));
+		if (!Skill.cast(skillId, state, target)) {
+			Attack.weaponSwitch(swap);
+			return false;
+		}
+		Attack.weaponSwitch(swap);
+		return true;
+	},
+
 	raiseArmy: function (range) {
 		var i, tick, count, corpse, corpseList, skill, maxSkeletons, maxMages, maxRevives;
 
@@ -331,22 +413,32 @@ var ClassAttack = {
 		}
 
 		if (Config.Skeletons === "max") {
-			skill = me.getSkill(70, 1);
+			skill = me.getSkill(70, 0);
 			maxSkeletons = skill < 4 ? skill : (Math.floor(skill / 3) + 2);
+			if (maxSkeletons > 8) {
+				maxSkeletons = 8;
+			}
 		} else {
 			maxSkeletons = Config.Skeletons;
 		}
 
 		if (Config.SkeletonMages === "max") {
-			skill = me.getSkill(80, 1);
+			skill = me.getSkill(80, 0);
 			maxMages = skill < 4 ? skill : (Math.floor(skill / 3) + 2);
+			if (maxMages > 8) {
+				maxMages = 8;
+			}
 		} else {
 			maxMages = Config.SkeletonMages;
 		}
 
 		if (Config.Revives === "max") {
-			skill = me.getSkill(95, 1);
-			maxRevives = skill;
+			skill = me.getSkill(95, 0);
+			maxRevives = Math.floor(skill / 4) + 3;
+			if (maxRevives > 8) {
+				maxRevives = 8;
+			}
+
 		} else {
 			maxRevives = Config.Revives;
 		}
@@ -366,11 +458,15 @@ var ClassAttack = {
 			MainLoop:
 			while (corpseList.length > 0) {
 				corpse = corpseList.shift();
-
+				//D2Bot.printToConsole("raizeArmy/corpse : " + corpse.name);
 				if (me.getMinionCount(4) < maxSkeletons) {
-					if (!Skill.cast(70, 0, corpse)) {
+
+					//if (!Skill.cast(70, 0, corpse)) {
+					if (!this.precastSkill(70, 0, corpse)) {
 						return false;
 					}
+					//D2Bot.printToConsole("==> raize Skeletons : " + me.getMinionCount(4) + "/" + maxSkeletons);
+					me.overhead("!raize Skeletons : " + me.getMinionCount(4) + "/" + maxSkeletons);
 
 					count = me.getMinionCount(4);
 					tick = getTickCount();
@@ -383,9 +479,12 @@ var ClassAttack = {
 						delay(10);
 					}
 				} else if (me.getMinionCount(5) < maxMages) {
-					if (!Skill.cast(80, 0, corpse)) {
+					//if (!Skill.cast(80, 0, corpse)) {
+					if (!this.precastSkill(80, 0, corpse)) {
 						return false;
 					}
+					//D2Bot.printToConsole("==> raize mage : " + me.getMinionCount(5) + "/" + maxMages);
+					me.overhead("!raize mage : " + me.getMinionCount(5) + "/" + maxMages);
 
 					count = me.getMinionCount(5);
 					tick = getTickCount();
@@ -398,12 +497,14 @@ var ClassAttack = {
 						delay(10);
 					}
 				} else if (me.getMinionCount(6) < maxRevives) {
+					//if (me.getMinionCount(6) < maxRevives) {
 					if (this.checkCorpse(corpse, true)) {
-						print("Reviving " + corpse.name);
-
-						if (!Skill.cast(95, 0, corpse)) {
+						//if (!Skill.cast(95, 0, corpse)) {
+						if (!this.precastSkill(95, 0, corpse)) {
 							return false;
 						}
+						//print("Reviving " + corpse.name);
+						me.overhead("!raize : (" + corpse.name + ") " + me.getMinionCount(6) + "/" + maxRevives);
 
 						count = me.getMinionCount(6);
 						tick = getTickCount();
