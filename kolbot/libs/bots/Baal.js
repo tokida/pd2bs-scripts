@@ -5,61 +5,68 @@
  */
 
 function Baal() {
+	D2Bot.printToConsole('script baal.js start');
 	var portal, tick;
+	me.overhead("baal");
+
+	if (Config.MFLeader) {
+		me.overhead("waiting for party")
+		delay(50000);
+	}
 
 	this.preattack = function () {
 		var check;
 
 		switch (me.classid) {
-		case 1: // Sorceress
-			switch (Config.AttackSkill[3]) {
-			case 49:
-			case 53:
-			case 56:
-			case 59:
-			case 64:
-				if (me.getState(121)) {
-					while (me.getState(121)) {
-						delay(100);
-					}
-				} else {
-					return Skill.cast(Config.AttackSkill[1], 0, 15094 + rand(-1, 1), 5028);
+			case 1: // Sorceress
+				switch (Config.AttackSkill[3]) {
+					case 49:
+					case 53:
+					case 56:
+					case 59:
+					case 64:
+						if (me.getState(121)) {
+							while (me.getState(121)) {
+								delay(100);
+							}
+						} else {
+							return Skill.cast(Config.AttackSkill[1], 0, 15094 + rand(-1, 1), 5028);
+						}
+
+						break;
 				}
 
 				break;
-			}
+			case 3: // Paladin
+				if (Config.AttackSkill[3] === 112) {
+					if (Config.AttackSkill[4] > 0) {
+						Skill.setSkill(Config.AttackSkill[4], 0);
+					}
 
-			break;
-		case 3: // Paladin
-			if (Config.AttackSkill[3] === 112) {
-				if (Config.AttackSkill[4] > 0) {
-					Skill.setSkill(Config.AttackSkill[4], 0);
+					return Skill.cast(Config.AttackSkill[3], 1);
 				}
 
-				return Skill.cast(Config.AttackSkill[3], 1);
-			}
-
-			break;
-		case 5: // Druid
-			if (Config.AttackSkill[3] === 245) {
-				return Skill.cast(Config.AttackSkill[3], 0, 15094 + rand(-1, 1), 5028);
-			}
-
-			break;
-		case 6: // Assassin
-			if (Config.UseTraps) {
-				check = ClassAttack.checkTraps({x: 15094, y: 5028});
-
-				if (check) {
-					return ClassAttack.placeTraps({x: 15094, y: 5028}, 5);
+				break;
+			case 5: // Druid
+				if (Config.AttackSkill[3] === 245) {
+					return Skill.cast(Config.AttackSkill[3], 0, 15094 + rand(-1, 1), 5028);
 				}
-			}
 
-			if (Config.AttackSkill[3] === 256) { // shock-web
-				return Skill.cast(Config.AttackSkill[3], 0, 15094, 5028);
-			}
+				break;
+			case 6: // Assassin
+				if (Config.UseTraps) {
+					check = ClassAttack.checkTraps({ x: 15094, y: 5028 });
 
-			break;
+					if (check) {
+						return ClassAttack.placeTraps({ x: 15094, y: 5028 }, 5);
+					}
+				}
+
+				if (Config.AttackSkill[3] === 256) { // shock-web
+					return Skill.cast(Config.AttackSkill[3], 0, 15094, 5028);
+				}
+
+				break;
 		}
 
 		return false;
@@ -72,23 +79,23 @@ function Baal() {
 			do {
 				if (Attack.checkMonster(monster) && monster.y < 5080) {
 					switch (monster.classid) {
-					case 23:
-					case 62:
-						return 1;
-					case 105:
-					case 381:
-						return 2;
-					case 557:
-						return 3;
-					case 558:
-						return 4;
-					case 571:
-						return 5;
-					default:
-						Attack.getIntoPosition(monster, 10, 0x4);
-						Attack.clear(15);
+						case 23:
+						case 62:
+							return 1;
+						case 105:
+						case 381:
+							return 2;
+						case 557:
+							return 3;
+						case 558:
+							return 4;
+						case 571:
+							return 5;
+						default:
+							Attack.getIntoPosition(monster, 10, 0x4);
+							Attack.clear(15);
 
-						return false;
+							return false;
 					}
 				}
 			} while (monster.getNext());
@@ -193,32 +200,39 @@ function Baal() {
 			string += " Dolls in area.";
 		}
 
-		say(string);
 	};
 
 	Town.doChores();
 	Pather.useWaypoint(Config.RandomPrecast ? "random" : 129);
 	Precast.doPrecast(true);
+	Pather.makePortal();
 
 	if (me.area !== 129) {
 		Pather.useWaypoint(129);
 	}
 
+	if (me.classid == 1) {
+		Pather.teleport = true;
+	}
+
+
 	if (!Pather.moveToExit([130, 131], true)) {
 		throw new Error("Failed to move to Throne of Destruction.");
+	} else {
+		D2Bot.printToConsole('make portal : b');
+		Pather.makePortal();
 	}
 
 	Pather.moveTo(15095, 5029);
+	Pather.makePortal();
 
 	if (Config.Baal.DollQuit && getUnit(1, 691)) {
-		say("Dolls found! NG.");
-
+		//say("Dolls found! NG.");
 		return true;
 	}
 
 	if (Config.Baal.SoulQuit && getUnit(1, 641)) {
-		say("Souls found! NG.");
-
+		//say("Souls found! NG.");
 		return true;
 	}
 
@@ -226,7 +240,7 @@ function Baal() {
 		this.announce();
 		Pather.moveTo(15118, 5002);
 		Pather.makePortal();
-		say(Config.Baal.HotTPMessage);
+		//say(Config.Baal.HotTPMessage);
 		Attack.clear(15);
 	}
 
@@ -234,8 +248,7 @@ function Baal() {
 
 	if (Config.PublicMode) {
 		Pather.moveTo(15118, 5045);
-		Pather.makePortal();
-		say(Config.Baal.SafeTPMessage);
+		//say(Config.Baal.SafeTPMessage);
 		Precast.doPrecast(true);
 	}
 
@@ -243,7 +256,7 @@ function Baal() {
 
 	Pather.moveTo(15094, me.classid === 3 ? 5029 : 5038);
 
-MainLoop:
+	MainLoop:
 	while (true) {
 		if (getDistance(me, 15094, me.classid === 3 ? 5029 : 5038) > 3) {
 			Pather.moveTo(15094, me.classid === 3 ? 5029 : 5038);
@@ -254,51 +267,51 @@ MainLoop:
 		}
 
 		switch (this.checkThrone()) {
-		case 1:
-			Attack.clear(40);
+			case 1:
+				Attack.clear(40);
 
-			tick = getTickCount();
+				tick = getTickCount();
 
-			Precast.doPrecast(true);
+				Precast.doPrecast(true);
 
-			break;
-		case 2:
-			Attack.clear(40);
+				break;
+			case 2:
+				Attack.clear(40);
 
-			tick = getTickCount();
+				tick = getTickCount();
 
-			break;
-		case 4:
-			Attack.clear(40);
+				break;
+			case 4:
+				Attack.clear(40);
 
-			tick = getTickCount();
+				tick = getTickCount();
 
-			break;
-		case 3:
-			Attack.clear(40);
-			this.checkHydra();
+				break;
+			case 3:
+				Attack.clear(40);
+				this.checkHydra();
 
-			tick = getTickCount();
+				tick = getTickCount();
 
-			break;
-		case 5:
-			Attack.clear(40);
+				break;
+			case 5:
+				Attack.clear(40);
 
-			break MainLoop;
-		default:
-			if (getTickCount() - tick < 7e3) {
-				if (me.getState(2)) {
-					Skill.setSkill(109, 0);
+				break MainLoop;
+			default:
+				if (getTickCount() - tick < 7e3) {
+					if (me.getState(2)) {
+						Skill.setSkill(109, 0);
+					}
+
+					break;
+				}
+
+				if (!this.preattack()) {
+					delay(100);
 				}
 
 				break;
-			}
-
-			if (!this.preattack()) {
-				delay(100);
-			}
-
-			break;
 		}
 
 		delay(10);
@@ -306,12 +319,15 @@ MainLoop:
 
 	if (Config.Baal.KillBaal) {
 		if (Config.PublicMode) {
-			say(Config.Baal.BaalMessage);
+			//say(Config.Baal.BaalMessage);
 		}
 
 		Pather.moveTo(15090, 5008);
+		Pather.makePortal();
+
 		delay(5000);
 		Precast.doPrecast(true);
+		Pather.makePortal();
 
 		while (getUnit(1, 543)) {
 			delay(500);
@@ -326,6 +342,8 @@ MainLoop:
 		}
 
 		Pather.moveTo(15134, 5923);
+		Pather.makePortal();
+
 		Attack.kill(544); // Baal
 		Pickit.pickItems();
 	}
