@@ -33,7 +33,7 @@ const sdk = require('../libs/modules/sdk')
 
 function main() {
 	var i, mercHP, ironGolem, tick, merc,
-		debugInfo = {area: 0, currScript: "no entry"},
+		debugInfo = { area: 0, currScript: "no entry" },
 		pingTimer = [],
 		quitFlag = false,
 		quitListDelayTime,
@@ -50,6 +50,10 @@ function main() {
 	CraftingSystem.buildLists();
 	Runewords.init();
 	Cubing.init();
+
+	// add logging 
+	MuleLogger.logChar();
+	me.overhead("Logged char: " + me.name);
 
 	for (i = 0; i < 5; i += 1) {
 		timerLastDrink[i] = 0;
@@ -145,7 +149,7 @@ function main() {
 	};
 
 	this.togglePause = function () {
-		var i,	script,
+		var i, script,
 			scripts = ["default.dbj", "tools/townchicken.js", "tools/antihostile.js", "tools/party.js", "tools/rushthread.js"];
 
 		for (i = 0; i < scripts.length; i += 1) {
@@ -194,31 +198,31 @@ function main() {
 			tNow = getTickCount();
 
 		switch (type) {
-		case 0:
-		case 1:
-			if ((timerLastDrink[type] && (tNow - timerLastDrink[type] < 1000)) || me.getState(type === 0 ? 100 : 106)) {
-				return false;
-			}
+			case 0:
+			case 1:
+				if ((timerLastDrink[type] && (tNow - timerLastDrink[type] < 1000)) || me.getState(type === 0 ? 100 : 106)) {
+					return false;
+				}
 
-			break;
-		case 2:
-			if (timerLastDrink[type] && (tNow - timerLastDrink[type] < 300)) { // small delay for juvs just to prevent using more at once
-				return false;
-			}
+				break;
+			case 2:
+				if (timerLastDrink[type] && (tNow - timerLastDrink[type] < 300)) { // small delay for juvs just to prevent using more at once
+					return false;
+				}
 
-			break;
-		case 4:
-			if (timerLastDrink[type] && (tNow - timerLastDrink[type] < 2000)) { // larger delay for juvs just to prevent using more at once, considering merc update rate
-				return false;
-			}
+				break;
+			case 4:
+				if (timerLastDrink[type] && (tNow - timerLastDrink[type] < 2000)) { // larger delay for juvs just to prevent using more at once, considering merc update rate
+					return false;
+				}
 
-			break;
-		default:
-			if (timerLastDrink[type] && (tNow - timerLastDrink[type] < 8000)) {
-				return false;
-			}
+				break;
+			default:
+				if (timerLastDrink[type] && (tNow - timerLastDrink[type] < 8000)) {
+					return false;
+				}
 
-			break;
+				break;
 		}
 
 		if (me.mode === 0 || me.mode === 17 || me.mode === 18) { // mode 18 - can't drink while leaping/whirling etc.
@@ -226,19 +230,19 @@ function main() {
 		}
 
 		switch (type) {
-		case 0:
-		case 3:
-			pottype = 76;
+			case 0:
+			case 3:
+				pottype = 76;
 
-			break;
-		case 1:
-			pottype = 77;
+				break;
+			case 1:
+				pottype = 77;
 
-			break;
-		default:
-			pottype = 78;
+				break;
+			default:
+				pottype = 78;
 
-			break;
+				break;
 		}
 
 		potion = this.getPotion(pottype, type);
@@ -355,47 +359,46 @@ function main() {
 		var realFBR = unit.getStat(sdk.stats.Fasterblockrate);
 		var realFHR = unit.getStat(sdk.stats.Fastergethitrate);
 		// me.getStat(105) will return real FCR from gear + Config.FCR from char cfg
-		if (unit == me)
-		{
-		        realFCR -= Config.FCR;
-		        realIAS -= Config.IAS;
-		        realFBR -= Config.FBR;
-		        realFHR -= Config.FHR;
+		if (unit == me) {
+			realFCR -= Config.FCR;
+			realIAS -= Config.IAS;
+			realFBR -= Config.FBR;
+			realFHR -= Config.FHR;
 		}
 		var maxHellFireRes = 75 + unit.getStat(sdk.stats.Maxfireresist);
 		var hellFireRes = unit.getStat(sdk.stats.Fireresist) - 100;
 		if (hellFireRes > maxHellFireRes)
-		        hellFireRes = maxHellFireRes;
+			hellFireRes = maxHellFireRes;
 		var maxHellColdRes = 75 + unit.getStat(sdk.stats.Maxcoldresist);
 		var hellColdRes = unit.getStat(sdk.stats.Coldresist) - 100;
 		if (hellColdRes > maxHellColdRes)
-		        hellColdRes = maxHellColdRes;
+			hellColdRes = maxHellColdRes;
 		var maxHellLightRes = 75 + unit.getStat(sdk.stats.Maxlightresist);
 		var hellLightRes = unit.getStat(sdk.stats.Lightresist) - 100;
 		if (hellLightRes > maxHellLightRes)
-		        hellLightRes = maxHellLightRes;
+			hellLightRes = maxHellLightRes;
 		var maxHellPoisonRes = 75 + unit.getStat(sdk.stats.Maxpoisonresist);
 		var hellPoisonRes = unit.getStat(sdk.stats.Poisonresist) - 100;
 		if (hellPoisonRes > maxHellPoisonRes)
-		        hellPoisonRes = maxHellPoisonRes;
+			hellPoisonRes = maxHellPoisonRes;
 		var str = "ÿc4MF: ÿc0" + unit.getStat(sdk.stats.Magicbonus) + "ÿc4 GF: ÿc0" + unit.getStat(sdk.stats.Goldbonus) +
-		"ÿc1 FR: ÿc0" + unit.getStat(sdk.stats.Fireresist) + "ÿc1 Max FR: ÿc0" + unit.getStat(sdk.stats.Maxfireresist) +
-		"ÿc3 CR: ÿc0" + unit.getStat(sdk.stats.Coldresist) + "ÿc3 Max CR: ÿc0" + unit.getStat(sdk.stats.Maxcoldresist) +
-		"ÿc9 LR: ÿc0" + unit.getStat(sdk.stats.Lightresist) + "ÿc9 Max LR: ÿc0" + unit.getStat(sdk.stats.Maxlightresist) +
-		"ÿc2 PR: ÿc0" + unit.getStat(sdk.stats.Poisonresist) + "ÿc2 Max PR: ÿc0" + unit.getStat(sdk.stats.Maxpoisonresist) +
-		"\n" +
-		"Hell res: ÿc1" + hellFireRes + "ÿc0/ÿc3" + hellColdRes + "ÿc0/ÿc9" + hellLightRes + "ÿc0/ÿc2" + hellPoisonRes +
-		"ÿc0\n" +
-		"FCR: " + realFCR + " IAS: " + realIAS + " FBR: " + realFBR +
-		" FHR: " + realFHR + " FRW: " + unit.getStat(sdk.stats.Fastermovevelocity) +
-		"\n" +
-		"CB: " + unit.getStat(sdk.stats.Crushingblow) + " DS: " + unit.getStat(sdk.stats.Deadlystrike) +
-		" OW: " + unit.getStat(sdk.stats.Openwounds) +
-		" ÿc1LL: ÿc0" + unit.getStat(sdk.stats.Lifedrainmindam) + " ÿc3ML: ÿc0" + unit.getStat(sdk.stats.Manadrainmindam) +
-		" DR: " + unit.getStat(sdk.stats.Damageresist) + "% + " + unit.getStat(sdk.stats.NormalDamageReduction) +
-		" MDR: " + unit.getStat(sdk.stats.Magicresist) + "% + " + unit.getStat(sdk.stats.MagicDamageReduction) +
-		"\n" +
-		(unit.getStat(sdk.stats.Cannotbefrozen) > 0 ? "ÿc3Cannot be Frozenÿc1\n" : "\n");
+			"ÿc1 FR: ÿc0" + unit.getStat(sdk.stats.Fireresist) + "ÿc1 Max FR: ÿc0" + unit.getStat(sdk.stats.Maxfireresist) +
+			"ÿc3 CR: ÿc0" + unit.getStat(sdk.stats.Coldresist) + "ÿc3 Max CR: ÿc0" + unit.getStat(sdk.stats.Maxcoldresist) +
+			"ÿc9 LR: ÿc0" + unit.getStat(sdk.stats.Lightresist) + "ÿc9 Max LR: ÿc0" + unit.getStat(sdk.stats.Maxlightresist) +
+			"ÿc2 PR: ÿc0" + unit.getStat(sdk.stats.Poisonresist) + "ÿc2 Max PR: ÿc0" + unit.getStat(sdk.stats.Maxpoisonresist) +
+			"\n" +
+			"Hell res: ÿc1" + hellFireRes + "ÿc0/ÿc3" + hellColdRes + "ÿc0/ÿc9" + hellLightRes + "ÿc0/ÿc2" + hellPoisonRes +
+			"ÿc0\n" +
+			"FCR: " + realFCR + " IAS: " + realIAS + " FBR: " + realFBR +
+			" FHR: " + realFHR + " FRW: " + unit.getStat(sdk.stats.Fastermovevelocity) +
+			"\n" +
+			"CB: " + unit.getStat(sdk.stats.Crushingblow) + " DS: " + unit.getStat(sdk.stats.Deadlystrike) +
+			" OW: " + unit.getStat(sdk.stats.Openwounds) +
+			" ÿc1LL: ÿc0" + unit.getStat(sdk.stats.Lifedrainmindam) + " ÿc3ML: ÿc0" + unit.getStat(sdk.stats.Manadrainmindam) +
+			" DR: " + unit.getStat(sdk.stats.Damageresist) + "% + " + unit.getStat(sdk.stats.NormalDamageReduction) +
+			" MDR: " + unit.getStat(sdk.stats.Magicresist) + "% + " + unit.getStat(sdk.stats.MagicDamageReduction) +
+			"\n" +
+			(unit.getStat(sdk.stats.Cannotbefrozen) > 0 ? "ÿc3Cannot be Frozenÿc1\n" : "\n");
 
 		return str;
 	};
@@ -403,149 +406,149 @@ function main() {
 	// Event functions
 	this.keyEvent = function (key) {
 		switch (key) {
-		case 19: // Pause/Break key
-			this.togglePause();
+			case 78: // N key
+				this.togglePause();
 
-			break;
-		case 35: // End key
-			MuleLogger.logChar();
-			delay(rand(Config.QuitListDelay[0] * 1e3, Config.QuitListDelay[1] * 1e3));
-			D2Bot.printToConsole(me.profile + " - end run " + me.gamename);
-			D2Bot.stop(me.profile, true);
-
-			break;
-		case 45: // Ins key
-			me.overhead("Revealing " + Pather.getAreaName(me.area));
-			revealLevel(true);
-
-			break;
-		case 107: // Numpad +
-			showConsole();
-
-			var merc = me.getMerc();
-			print(this.getStatsString(me));
-			if (merc)
-				print("Merc stats:\n" + this.getStatsString(merc));
-
-			break;		
-		case 101: // numpad 5
-			if (AutoMule.getInfo() && AutoMule.getInfo().hasOwnProperty("muleInfo")) {
-				if (AutoMule.getMuleItems().length > 0) {
-					print("ÿc2Mule triggered");
-					scriptBroadcast("mule");
-					this.exit();
-				} else {
-					me.overhead("No items to mule.");
-				}
-			} else {
-				me.overhead("Profile not enabled for muling.");
-			}
-
-			break;
-		case 102: // Numpad 6
-			MuleLogger.logChar();
-			me.overhead("Logged char: " + me.name);
-
-			break;
-		case 109: // Numpad -
-			Misc.spy(me.name);
-
-			break;
-		case 110: // decimal point
-			if(!me.inTown){
-				Pather.makePortal();
-				Pather.usePortal(null, me.name);
-			}
 				break;
-		case 105: // numpad 9 - get nearest preset unit id
-			print(this.getNearestPreset());
+			case 35: // End key
+				MuleLogger.logChar();
+				delay(rand(Config.QuitListDelay[0] * 1e3, Config.QuitListDelay[1] * 1e3));
+				D2Bot.printToConsole(me.profile + " - end run " + me.gamename);
+				D2Bot.stop(me.profile, true);
 
-			break;
-		case 106: // numpad * - precast
-			Precast.doPrecast(true);
+				break;
+			case 123: // F12 key
+				me.overhead("Revealing " + Pather.getAreaName(me.area));
+				revealLevel(true);
 
-			break;
+				break;
+			case 34: // PageDown
+				showConsole();
+
+				var merc = me.getMerc();
+				print(this.getStatsString(me));
+				if (merc)
+					print("Merc stats:\n" + this.getStatsString(merc));
+
+				break;
+			case 45: // INS
+				if (AutoMule.getInfo() && AutoMule.getInfo().hasOwnProperty("muleInfo")) {
+					if (AutoMule.getMuleItems().length > 0) {
+						print("ÿc2Mule triggered");
+						scriptBroadcast("mule");
+						this.exit();
+					} else {
+						me.overhead("No items to mule.");
+					}
+				} else {
+					me.overhead("Profile not enabled for muling.");
+				}
+
+				break;
+			case 102: // Numpad 6
+				MuleLogger.logChar();
+				me.overhead("Logged char: " + me.name);
+
+				break;
+			case 109: // Numpad -
+				Misc.spy(me.name);
+
+				break;
+			case 110: // decimal point
+				if (!me.inTown) {
+					Pather.makePortal();
+					Pather.usePortal(null, me.name);
+				}
+				break;
+			case 105: // numpad 9 - get nearest preset unit id
+				print(this.getNearestPreset());
+
+				break;
+			case 106: // numpad * - precast
+				Precast.doPrecast(true);
+
+				break;
 		}
 	};
 
 	this.gameEvent = function (mode, param1, param2, name1, name2) {
 		switch (mode) {
-		case 0x00: // "%Name1(%Name2) dropped due to time out."
-		case 0x01: // "%Name1(%Name2) dropped due to errors."
-		case 0x03: // "%Name1(%Name2) left our world. Diablo's minions weaken."
-			if ((typeof Config.QuitList === "string" && Config.QuitList.toLowerCase() === "any") ||
+			case 0x00: // "%Name1(%Name2) dropped due to time out."
+			case 0x01: // "%Name1(%Name2) dropped due to errors."
+			case 0x03: // "%Name1(%Name2) left our world. Diablo's minions weaken."
+				if ((typeof Config.QuitList === "string" && Config.QuitList.toLowerCase() === "any") ||
 					(Config.QuitList instanceof Array && Config.QuitList.indexOf(name1) > -1)) {
-				print(name1 + (mode === 0 ? " timed out" : " left"));
+					print(name1 + (mode === 0 ? " timed out" : " left"));
 
-				if (typeof Config.QuitListDelay !== "undefined" && typeof quitListDelayTime === "undefined" && Config.QuitListDelay.length > 0) {
-					Config.QuitListDelay.sort(function(a, b){return a-b});
-					quitListDelayTime = getTickCount() + rand(Config.QuitListDelay[0] * 1e3, Config.QuitListDelay[1] * 1e3);
-				} else {
-					quitListDelayTime = getTickCount();
+					if (typeof Config.QuitListDelay !== "undefined" && typeof quitListDelayTime === "undefined" && Config.QuitListDelay.length > 0) {
+						Config.QuitListDelay.sort(function (a, b) { return a - b });
+						quitListDelayTime = getTickCount() + rand(Config.QuitListDelay[0] * 1e3, Config.QuitListDelay[1] * 1e3);
+					} else {
+						quitListDelayTime = getTickCount();
+					}
+
+					quitFlag = true;
 				}
 
-				quitFlag = true;
-			}
-
-			if (Config.AntiHostile) {
-				scriptBroadcast("remove " + name1);
-			}
-
-			break;
-		case 0x06: // "%Name1 was Slain by %Name2"
-			if (Config.AntiHostile && param2 === 0x00 && name2 === me.name) {
-				scriptBroadcast("mugshot " + name1);
-			}
-
-			break;
-		case 0x07:
-			if (Config.AntiHostile && param2 === 0x03) { // "%Player has declared hostility towards you."
-				scriptBroadcast("findHostiles");
-			}
-
-			break;
-		case 0x11: // "%Param1 Stones of Jordan Sold to Merchants"
-			if (Config.DCloneQuit === 2) {
-				D2Bot.printToConsole("SoJ sold in game. Leaving.");
-
-				quitFlag = true;
-
-				break;
-			}
-
-			if (Config.SoJWaitTime && me.gametype === 1) { // only do this in expansion
-				D2Bot.printToConsole(param1 + " Stones of Jordan Sold to Merchants on IP " + me.gameserverip.split(".")[3], 7);
-				Messaging.sendToScript("default.dbj", "soj");
-			}
-
-			break;
-		case 0x12: // "Diablo Walks the Earth"
-			if (Config.DCloneQuit > 0) {
-				D2Bot.printToConsole("Diablo walked in game. Leaving.");
-
-				quitFlag = true;
-
-				break;
-			}
-
-			if (Config.StopOnDClone && me.gametype === 1) { // only do this in expansion
-				D2Bot.printToConsole("Diablo Walks the Earth", 7);
-
-				cloneWalked = true;
-
-				this.togglePause();
-				Town.goToTown();
-				showConsole();
-				print("ÿc4Diablo Walks the Earth");
-
-				me.maxgametime = 0;
-
-				if (Config.KillDclone) {
-					load("tools/clonekilla.js");
+				if (Config.AntiHostile) {
+					scriptBroadcast("remove " + name1);
 				}
-			}
 
-			break;
+				break;
+			case 0x06: // "%Name1 was Slain by %Name2"
+				if (Config.AntiHostile && param2 === 0x00 && name2 === me.name) {
+					scriptBroadcast("mugshot " + name1);
+				}
+
+				break;
+			case 0x07:
+				if (Config.AntiHostile && param2 === 0x03) { // "%Player has declared hostility towards you."
+					scriptBroadcast("findHostiles");
+				}
+
+				break;
+			case 0x11: // "%Param1 Stones of Jordan Sold to Merchants"
+				if (Config.DCloneQuit === 2) {
+					D2Bot.printToConsole("SoJ sold in game. Leaving.");
+
+					quitFlag = true;
+
+					break;
+				}
+
+				if (Config.SoJWaitTime && me.gametype === 1) { // only do this in expansion
+					D2Bot.printToConsole(param1 + " Stones of Jordan Sold to Merchants on IP " + me.gameserverip.split(".")[3], 7);
+					Messaging.sendToScript("default.dbj", "soj");
+				}
+
+				break;
+			case 0x12: // "Diablo Walks the Earth"
+				if (Config.DCloneQuit > 0) {
+					D2Bot.printToConsole("Diablo walked in game. Leaving.");
+
+					quitFlag = true;
+
+					break;
+				}
+
+				if (Config.StopOnDClone && me.gametype === 1) { // only do this in expansion
+					D2Bot.printToConsole("Diablo Walks the Earth", 7);
+
+					cloneWalked = true;
+
+					this.togglePause();
+					Town.goToTown();
+					showConsole();
+					print("ÿc4Diablo Walks the Earth");
+
+					me.maxgametime = 0;
+
+					if (Config.KillDclone) {
+						load("tools/clonekilla.js");
+					}
+				}
+
+				break;
 		}
 	};
 
@@ -553,35 +556,35 @@ function main() {
 		var obj;
 
 		switch (msg) {
-		case "toggleQuitlist":
-			canQuit = !canQuit;
+			case "toggleQuitlist":
+				canQuit = !canQuit;
 
-			break;
-		case "quit":
-			quitFlag = true;
+				break;
+			case "quit":
+				quitFlag = true;
 
-			break;
-		default:
-			try {
-				obj = JSON.parse(msg);
-			} catch (e) {
-				return;
-			}
-
-			if (obj) {
-				if (obj.hasOwnProperty("currScript")) {
-					debugInfo.currScript = obj.currScript;
+				break;
+			default:
+				try {
+					obj = JSON.parse(msg);
+				} catch (e) {
+					return;
 				}
 
-				if (obj.hasOwnProperty("lastAction")) {
-					debugInfo.lastAction = obj.lastAction;
+				if (obj) {
+					if (obj.hasOwnProperty("currScript")) {
+						debugInfo.currScript = obj.currScript;
+					}
+
+					if (obj.hasOwnProperty("lastAction")) {
+						debugInfo.lastAction = obj.lastAction;
+					}
+
+					//D2Bot.store(JSON.stringify(debugInfo));
+					DataFile.updateStats("debugInfo", JSON.stringify(debugInfo));
 				}
 
-				//D2Bot.store(JSON.stringify(debugInfo));
-				DataFile.updateStats("debugInfo", JSON.stringify(debugInfo));
-			}
-
-			break;
+				break;
 		}
 	};
 
