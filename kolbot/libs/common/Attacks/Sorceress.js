@@ -45,6 +45,7 @@ var ClassAttack = {
 			Town.visitTown();
 		}
 
+		// 58; Energy Shield
 		if (!me.getState(30) && me.getSkill(58, 1)) {
 			Skill.cast(58, 0);
 		}
@@ -61,7 +62,7 @@ var ClassAttack = {
 			return 1;
 		}
 
-		var index, staticRange, checkSkill, result,
+		var index, staticRange, checkSkill, result, mark,
 			mercRevive = 0,
 			timedSkill = -1,
 			untimedSkill = -1;
@@ -144,29 +145,45 @@ var ClassAttack = {
 			untimedSkill = Config.LowManaSkill[1];
 		}
 
+		switch (ClassAttack.doCast(unit, timedSkill, untimedSkill)) {
+			case 0: // Fail
+				me.overhead("doCast() fail");
+				break;
+			case 1: // Success
+				//me.overhead("doCast() Success");
+				//D2Bot.printToConsole("doCast() Success");
+				return true;
+			case 2: // Try to telestomp
+				me.overhead("doCast() telestomp");
+				if (Config.TeleStomp && Attack.checkResist(unit, "physical") && Config.UseMerc) {
+					while (Attack.checkMonster(unit)) {
+						Misc.townCheck();
 
-		result = this.doCast(unit, timedSkill, untimedSkill);
+						if (!merc) {
+							Town.visitTown();
+						}
 
-		if (result === 2 && Config.TeleStomp && Attack.checkResist(unit, "physical") && !!me.getMerc() && Attack.validSpot(unit.x, unit.y)) {
-			while (Attack.checkMonster(unit)) {
-				if (Town.needMerc()) {
-					if (Config.MercWatch && mercRevive++ < 1) {
-						Town.visitTown();
-					} else {
-						return 2;
+						if (getDistance(me, unit) > 3) {
+							Pather.moveToUnit(unit);
+						}
+
+						if (Attack.checkResist(unit, "lightning") && me.getSkill(42, 1) && Math.round(unit.hp * 100 / unit.hpmax) > Attack.getStaticAmount()) {
+							Skill.cast(42, 0);
+						}
+
+						mark = Attack.getNearestMonster();
+
+						if (mark) {
+							ClassAttack.doCast(mark, Config.AttackSkill[1], Config.AttackSkill[2]);
+						} else if (me.getSkill(43, 0)) {
+							Skill.cast(43, 0, unit.x, unit.y);
+						}
 					}
+
+					return true;
 				}
-
-				if (getDistance(me, unit) > 3) {
-					Pather.moveToUnit(unit);
-				}
-
-				this.doCast(unit, Config.AttackSkill[1], Config.AttackSkill[2]);
-			}
-
-			return 1;
+				break;
 		}
-
 		return result;
 	},
 
@@ -176,7 +193,7 @@ var ClassAttack = {
 
 	// Returns: 0 - fail, 1 - success, 2 - no valid attack skills
 	doCast: function (unit, timedSkill, untimedSkill) {
-		var i, walk;
+		var i, walk, mark;
 
 		// No valid skills can be found
 		if (timedSkill < 0 && untimedSkill < 0) {
@@ -200,8 +217,26 @@ var ClassAttack = {
 				}
 			}
 
-			if (!unit.dead && !checkCollision(me, unit, 0x4)) {
-				Skill.cast(timedSkill, Skill.getHand(timedSkill), unit);
+			mark = Attack.getNearestMonster();
+			//D2Bot.printToConsole("mark: " + mark);
+			if (mark <= 4) {
+				me.overhead("attack(!) move => " + mark);
+				Attack.getIntoPosition(unit, Skill.getRange(timedSkill), 0x4, walk);
+			}
+			if (mark) {
+				me.overhead("attack(1) => " + mark);
+				if (!unit.dead && !checkCollision(me, unit, 0x4)) {
+					Skill.cast(timedSkill, Skill.getHand(timedSkill), unit);
+					Skill.cast(untimedSkill, Skill.getHand(timedSkill), unit);
+					Skill.cast(untimedSkill, Skill.getHand(timedSkill), unit);
+				}
+			} else if (me.getSkill(43, 0)) {
+				me.overhead("attack(2) => " + mark);
+				Skill.cast(43, 0, unit.x, unit.y);
+				if (!unit.dead && !checkCollision(me, unit, 0x4)) {
+					Skill.cast(timedSkill, Skill.getHand(timedSkill), unit);
+					Skill.cast(untimedSkill, Skill.getHand(timedSkill), unit);
+				}
 			}
 
 			return 1;
@@ -222,10 +257,19 @@ var ClassAttack = {
 				}
 			}
 
-			if (!unit.dead) {
-				Skill.cast(untimedSkill, Skill.getHand(untimedSkill), unit);
-			}
+			mark = Attack.getNearestMonster();
 
+			if (mark) {
+				if (!unit.dead && !checkCollision(me, unit, 0x4)) {
+					Skill.cast(timedSkill, Skill.getHand(timedSkill), unit);
+				}
+			} else if (me.getSkill(43, 0)) {
+				me.overhead("monstar is near!");
+				Skill.cast(43, 0, unit.x, unit.y);
+				if (!unit.dead && !checkCollision(me, unit, 0x4)) {
+					Skill.cast(timedSkill, Skill.getHand(timedSkill), unit);
+				}
+			}
 			return 1;
 		}
 
